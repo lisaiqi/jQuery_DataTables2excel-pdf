@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.bootcss.com/datatables/1.10.16/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.2/css/buttons.dataTables.min.css" />
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>>
+    <script src="https://cdn.bootcss.com/datatables/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.bootcss.com/jszip/3.1.5/jszip.min.js"></script>
+    <script src="js/buttons.html5.js"></script>
+    <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap.min.js"></script>
+    <script src="https://cdn.bootcss.com/pdfmake/0.1.36/pdfmake.min.js"></script>
+    <script src="js/vfs_fonts.js"></script>
+    <script type="text/javascript" src="js/html2canvas.js"></script>
+    <script type="text/javascript" src="js/jsPdf.debug.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('#example').DataTable({
+            "destroy": true,
+            "bPaginate": false,
+            "bFilter": false,
+            /*"oLanguage":{
+            	"sInfo":"显示 _START_ 至 _END_ 条    本页共 _TOTAL_ 条",
+            	"sZeroRecords":"没有数据",
+            },
+            */
+            "aoColumns": [
+                { "data": "name", "sTitle": "姓名" },
+                { "data": "sex", "sTitle": "性别" },
+                { "data": "age", "sTitle": "年龄" },
+                { "data": "grade", "sTitle": "成绩" },
+                /*	{"data":"  ","sTitle":"操作","bSortable":false,
+                	"mRender":function(data,type,full){
+                		return "<div class='hidden-sm hidden-xs action-buttons'><a id='detail' class='blue' title='查看详情'><i style='cursor:pointer' class='ace-icon fa fa-info-circle bigger-120 blue'></i></a>  <a href='#modal-table-editShop' data-toggle='modal' id='edit' class='blue' title='修改'><i class='ace-icon fa fa-edit bigger-130'></i></a></div>";
+                	}},
+                */
+            ],
+
+            "aaData": [
+                { "name": "张三", "sex": "男", "age": "19", "grade": "100" },
+                { "name": "张三", "sex": "男", "age": "19", "grade": "100" },
+                { "name": "张三", "sex": "男", "age": "19", "grade": "100" },
+                { "name": "张三", "sex": "男", "age": "19", "grade": "100" },
+                { "name": "张三", "sex": "男", "age": "19", "grade": "100" },
+                { "name": "李四", "sex": "男", "age": "21", "grade": "99" },
+                { "name": "王丽", "sex": "1", "age": "22", "grade": "45" },
+            ],
+
+
+            dom: 'Bfrtip',
+            //buttons: [
+            //    'copyHtml5',
+            //    'excelHtml5',
+            //    'csvHtml5',
+            //    'pdfHtml5'
+            //]
+            "buttons": [{
+                'extend': 'excelHtml5',
+                'text': '导出excel', //定义导出按钮的文字  
+                'exportOptions': {
+                    'modifier': {
+                        'page': 'current'
+                    }
+                }
+            }, {
+                'extend': 'pdfHtml5',
+                'text': '导出PDF', //定义导出按钮的文字  
+                'exportOptions': {
+                    'modifier': {
+                        'page': 'current'
+                    }
+                }
+            }]
+        });
+    });
+    </script>
+</head>
+
+<body>
+    <!-- HTML代码片段中请勿添加<body>标签 -->
+    <div id="container">
+        <!-- 定义一个表格元素 -->
+        <table id="example" class="display nowrap" cellspacing="0" width="100%">
+
+		<thead>
+		</thead>
+		<tbody>
+		</tbody>
+
+        </table>
+    </div>
+    <button id="renderPdf">页面导出PDF</button>
+    <script type="text/javascript">
+    var downPdf = document.getElementById("renderPdf");
+
+    downPdf.onclick = function() {
+        //html2canvas(document.body, {
+        html2canvas(document.getElementById("container"), {
+            //dpi: 600, //导出pdf清晰度
+            //scale: 2, //清晰度比例 96/1，144/1.5，192/2
+            onrendered: function(canvas) {
+
+                var contentWidth = canvas.width;
+                var contentHeight = canvas.height;
+
+                //一页pdf显示html页面生成的canvas高度;
+                var pageHeight = contentWidth / 595.28 * 841.89;
+                //未生成pdf的html页面高度
+                var leftHeight = contentHeight;
+                //pdf页面偏移
+                var position = 0;
+                //a4纸的尺寸[595.28,841.89]，html页面生成的canvas在pdf中图片的宽高
+                var imgWidth = 555.28;
+                var imgHeight = 555.28 / contentWidth * contentHeight;
+
+                var pageData = canvas.toDataURL('image/jpeg', 1.0);
+
+                var pdf = new jsPDF('', 'pt', 'a4');
+                //有两个高度需要区分，一个是html页面的实际高度，和生成pdf的页面高度(841.89)
+                //当内容未超过pdf一页显示的范围，无需分页
+                if (leftHeight < pageHeight) {
+                    pdf.addImage(pageData, 'JPEG', 20, 0, imgWidth, imgHeight);
+                } else {
+                    while (leftHeight > 0) {
+                        pdf.addImage(pageData, 'JPEG', 20, position, imgWidth, imgHeight)
+                        leftHeight -= pageHeight;
+                        position -= 841.89;
+                        //避免添加空白页
+                        if (leftHeight > 0) {
+                            pdf.addPage();
+                        }
+                    }
+                }
+
+                pdf.save('content.pdf');
+            },
+            //背景设为白色（默认为黑色）
+            background: "#fff"
+        })
+    }
+    </script>
+</body>
+
+</html>
